@@ -308,11 +308,12 @@ function renderCards(updates) {
     elements.emptyState.classList.add('hidden');
     elements.updatesGrid.classList.remove('hidden');
     
-    updates.forEach(item => {
+    updates.forEach((item, index) => {
         const isSelected = selectedReleases.has(item.id);
         const card = document.createElement('div');
         card.className = `update-card ${isSelected ? 'selected' : ''}`;
         card.dataset.id = item.id;
+        card.style.animationDelay = `${Math.min(index * 35, 350)}ms`;
         
         // Determine category badge class
         let badgeClass = 'badge-general';
@@ -321,6 +322,9 @@ function renderCards(updates) {
         else if (typeLower.includes('change')) badgeClass = 'badge-change';
         else if (typeLower.includes('issue') || typeLower.includes('fixed')) badgeClass = 'badge-issue';
         else if (typeLower.includes('deprecat')) badgeClass = 'badge-deprecation';
+        
+        const relativeDate = getRelativeDateString(item.date);
+        const highlightedHtml = highlightText(item.description_html, currentFilters.search);
         
         card.innerHTML = `
             <div class="checkbox-column">
@@ -334,7 +338,7 @@ function renderCards(updates) {
                 <div class="card-header">
                     <div class="card-meta">
                         <span class="category-badge ${badgeClass}">${item.type}</span>
-                        <span class="card-date">${item.date}</span>
+                        <span class="card-date" title="${relativeDate}">${item.date}</span>
                     </div>
                     <div class="card-actions-top">
                         <button class="card-action-btn copy-btn-card" title="Copy plain text to clipboard">
@@ -351,7 +355,7 @@ function renderCards(updates) {
                     </div>
                 </div>
                 <div class="card-description">
-                    ${item.description_html}
+                    ${highlightedHtml}
                 </div>
                 <div class="card-footer">
                     <a href="${item.link}" target="_blank" class="card-doc-link">
@@ -683,6 +687,62 @@ function setupEventListeners() {
             closeTweetModal();
         }
     });
+
+    // Scroll to Top Button Behaviors
+    const btnScrollTop = document.getElementById('btn-scroll-top');
+    window.addEventListener('scroll', () => {
+        if (window.scrollY > 400) {
+            btnScrollTop.classList.add('visible');
+        } else {
+            btnScrollTop.classList.remove('visible');
+        }
+    });
+    btnScrollTop.addEventListener('click', () => {
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    });
+
+    // Power-User Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+            // Esc in search clears it and blurs
+            if (e.key === 'Escape' && e.target === elements.searchInput) {
+                elements.searchInput.value = '';
+                currentFilters.search = '';
+                elements.clearSearch.style.display = 'none';
+                applyFiltersAndRender();
+                elements.searchInput.blur();
+            }
+            // Esc in tweet textarea closes modal
+            if (e.key === 'Escape' && e.target === elements.tweetTextarea) {
+                closeTweetModal();
+            }
+            return;
+        }
+        
+        // Press '/' to search
+        if (e.key === '/') {
+            e.preventDefault();
+            elements.searchInput.focus();
+            elements.searchInput.select();
+        }
+        
+        // Press 'Escape' to clear selections/filters or close modals
+        if (e.key === 'Escape') {
+            if (elements.tweetModal.classList.contains('visible')) {
+                closeTweetModal();
+            } else if (selectedReleases.size > 0) {
+                clearAllSelections();
+            } else if (currentFilters.search || currentFilters.type !== 'all') {
+                elements.searchInput.value = '';
+                currentFilters.search = '';
+                elements.clearSearch.style.display = 'none';
+                updateFilterUI('all');
+            }
+        }
+    });
 }
 
 // Initialize on DOM load
@@ -691,3 +751,41 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     fetchReleases(false);
 });
+
+// ==========================================================================
+// UX HELPERS (TEXT HIGHLIGHTING & RELATIVE DATES)
+// ==========================================================================
+function highlightText(html, search) {
+    if (!search) return html;
+    const escapedSearch = search.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const regex = new RegExp(`(${escapedSearch})(?![^<>]*>)`, 'gi');
+    return html.replace(regex, '<mark class="highlight">$1</mark>');
+}
+
+function getRelativeDateString(dateStr) {
+    try {
+        const date = new Date(dateStr);
+        const now = new Date();
+        
+        date.setHours(0,0,0,0);
+        now.setHours(0,0,0,0);
+        
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        if (diffDays < 0) return 'In the future';
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        
+        if (diffDays < 30) {
+            const weeks = Math.floor(diffDays / 7);
+            return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+        }
+        
+        const months = Math.floor(diffDays / 30);
+        return `${months} month${months > 1 ? 's' : ''} ago`;
+    } catch (e) {
+        return '';
+    }
+}

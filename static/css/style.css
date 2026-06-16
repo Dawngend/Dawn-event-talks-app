@@ -1300,3 +1300,94 @@ body {
         justify-content: space-between;
     }
 }
+
+/* ==========================================================================
+   UX ENHANCEMENTS & ADDITIONS
+   ========================================================================== */
+/* 1. Sticky Navigation Header */
+.filter-controls {
+    position: sticky;
+    top: 20px;
+    z-index: 10;
+    background: rgba(11, 15, 25, 0.85);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+    transition: background var(--transition-fast), border var(--transition-fast);
+}
+
+:root[data-theme="light"] .filter-controls {
+    background: rgba(248, 250, 252, 0.85);
+    box-shadow: 0 10px 30px -10px rgba(15, 23, 42, 0.05);
+}
+
+/* 2. Staggered Card Entry Animation */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.update-card {
+    opacity: 0;
+    animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* 3. Search Matching Highlights */
+mark.highlight {
+    background: rgba(59, 130, 246, 0.3);
+    color: inherit;
+    border-radius: 2px;
+    padding: 0 2px;
+}
+
+:root[data-theme="light"] mark.highlight {
+    background: rgba(59, 130, 246, 0.2);
+}
+
+/* 4. Scroll-To-Top Button */
+.scroll-top-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 44px;
+    height: 44px;
+    background: rgba(11, 15, 25, 0.85);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 98;
+    backdrop-filter: blur(8px);
+    transition: all var(--transition-fast);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+}
+
+.scroll-top-btn.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.scroll-top-btn:hover {
+    background: var(--accent);
+    color: #ffffff;
+    border-color: var(--accent);
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+    transform: translateY(-2px);
+}
+
+:root[data-theme="light"] .scroll-top-btn {
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.1);
+}
