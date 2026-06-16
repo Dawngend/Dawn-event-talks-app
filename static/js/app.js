@@ -13,6 +13,7 @@ let lastUpdatedTime = null;
 const elements = {
     btnRefresh: document.getElementById('btn-refresh'),
     btnExport: document.getElementById('btn-export'),
+    themeToggle: document.getElementById('theme-toggle'),
     lastUpdatedText: document.getElementById('last-updated-text'),
     searchInput: document.getElementById('search-input'),
     clearSearch: document.getElementById('clear-search'),
@@ -571,6 +572,40 @@ function showToast(message, type = 'success') {
 }
 
 // ==========================================================================
+// THEME CONTROL (LIGHT/DARK MODE)
+// ==========================================================================
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    applyTheme(savedTheme);
+}
+
+function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    
+    const themeToggle = elements.themeToggle;
+    if (!themeToggle) return;
+    
+    const sunIcon = themeToggle.querySelector('.sun-icon');
+    const moonIcon = themeToggle.querySelector('.moon-icon');
+    
+    if (theme === 'light') {
+        sunIcon.classList.add('hidden');
+        moonIcon.classList.remove('hidden');
+    } else {
+        sunIcon.classList.remove('hidden');
+        moonIcon.classList.add('hidden');
+    }
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    applyTheme(newTheme);
+    showToast(`Switched to ${newTheme === 'dark' ? 'Dark' : 'Light'} Mode`, 'success');
+}
+
+// ==========================================================================
 // EVENT LISTENERS
 // ==========================================================================
 function setupEventListeners() {
@@ -582,6 +617,11 @@ function setupEventListeners() {
     // Export CSV button
     elements.btnExport.addEventListener('click', () => {
         exportToCSV();
+    });
+    
+    // Theme Toggle button
+    elements.themeToggle.addEventListener('click', () => {
+        toggleTheme();
     });
     
     // Search Box Input
@@ -647,6 +687,7 @@ function setupEventListeners() {
 
 // Initialize on DOM load
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     setupEventListeners();
     fetchReleases(false);
 });

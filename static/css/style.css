@@ -47,6 +47,93 @@
     --font-mono: 'Fira Code', monospace;
 }
 
+:root[data-theme="light"] {
+    --bg-dark: #f8fafc;
+    --bg-card: rgba(255, 255, 255, 0.75);
+    --bg-card-hover: rgba(255, 255, 255, 0.92);
+    --bg-card-selected: rgba(59, 130, 246, 0.08);
+    --border-color: rgba(15, 23, 42, 0.08);
+    --border-hover: rgba(15, 23, 42, 0.15);
+    --border-selected: rgba(59, 130, 246, 0.4);
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    
+    --x-bg: #f7f9f9;
+    --x-color: #0f1419;
+}
+
+/* Light Mode Overrides for UI Elements */
+:root[data-theme="light"] .bg-glow-1 { opacity: 0.06; }
+:root[data-theme="light"] .bg-glow-2 { opacity: 0.06; }
+:root[data-theme="light"] .bg-glow-3 { opacity: 0.02; }
+
+:root[data-theme="light"] .logo-text h1 {
+    background: linear-gradient(120deg, #0f172a 40%, #1e3a8a 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+:root[data-theme="light"] .search-box input {
+    background: rgba(255, 255, 255, 0.8);
+    border-color: rgba(15, 23, 42, 0.12);
+}
+:root[data-theme="light"] .search-box input:focus {
+    background: #ffffff;
+}
+
+:root[data-theme="light"] .modal-container {
+    background: #ffffff;
+    border-color: rgba(15, 23, 42, 0.1);
+}
+:root[data-theme="light"] .tweet-editor-container {
+    background: rgba(15, 23, 42, 0.02);
+    border-color: rgba(15, 23, 42, 0.06);
+}
+
+:root[data-theme="light"] .user-name { color: #0f1419; }
+:root[data-theme="light"] .tweet-text-preview { color: #0f1419; }
+:root[data-theme="light"] .link-title { color: #0f1419; }
+:root[data-theme="light"] .tweet-preview-card,
+:root[data-theme="light"] .tweet-link-preview {
+    border-color: #cfd9de;
+}
+
+:root[data-theme="light"] .toast {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(15, 23, 42, 0.1);
+    color: #0f172a;
+}
+
+.theme-toggle-btn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    backdrop-filter: blur(4px);
+}
+
+.theme-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--border-hover);
+    transform: scale(1.05);
+}
+
+:root[data-theme="light"] .theme-toggle-btn {
+    background: rgba(0, 0, 0, 0.02);
+}
+:root[data-theme="light"] .theme-toggle-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
 /* ==========================================================================
    RESET & BASE STYLES
    ========================================================================== */
