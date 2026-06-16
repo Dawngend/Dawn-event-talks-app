@@ -12,6 +12,7 @@ let lastUpdatedTime = null;
 // DOM Elements
 const elements = {
     btnRefresh: document.getElementById('btn-refresh'),
+    btnExport: document.getElementById('btn-export'),
     lastUpdatedText: document.getElementById('last-updated-text'),
     searchInput: document.getElementById('search-input'),
     clearSearch: document.getElementById('clear-search'),
@@ -183,11 +184,11 @@ function updateStats() {
 // ==========================================================================
 // FILTERING & SEARCHING
 // ==========================================================================
-function applyFiltersAndRender() {
+function getFilteredUpdates() {
     const searchVal = currentFilters.search.toLowerCase().trim();
     const typeFilter = currentFilters.type.toLowerCase();
     
-    const filtered = allReleases.filter(item => {
+    return allReleases.filter(item => {
         // 1. Type category filter
         let matchesType = true;
         const itemType = item.type.toLowerCase();
@@ -217,8 +218,53 @@ function applyFiltersAndRender() {
         
         return matchesType && matchesSearch;
     });
-    
+}
+
+function applyFiltersAndRender() {
+    const filtered = getFilteredUpdates();
     renderCards(filtered);
+}
+
+// Export Filtered Updates to CSV
+function exportToCSV() {
+    const filtered = getFilteredUpdates();
+    if (filtered.length === 0) {
+        showToast('No updates to export!', 'error');
+        return;
+    }
+    
+    // CSV Header row
+    const headers = ['ID', 'Date', 'Category', 'Description', 'Link'];
+    
+    // CSV Data rows
+    const rows = filtered.map(item => {
+        // Escape double quotes inside text fields
+        const id = item.id;
+        const date = `"${item.date.replace(/"/g, '""')}"`;
+        const type = `"${item.type.replace(/"/g, '""')}"`;
+        const desc = `"${item.description_text.replace(/\s+/g, ' ').replace(/"/g, '""')}"`;
+        const link = `"${item.link.replace(/"/g, '""')}"`;
+        return [id, date, type, desc, link];
+    });
+    
+    const csvContent = "\uFEFF" + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    
+    try {
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `bigquery_releases_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showToast(`Successfully exported ${filtered.length} updates to CSV!`, 'success');
+    } catch (err) {
+        console.error('CSV Export Error:', err);
+        showToast('Failed to export CSV. Please try again.', 'error');
+    }
 }
 
 // Synchronize filters visual UI
@@ -290,6 +336,12 @@ function renderCards(updates) {
                         <span class="card-date">${item.date}</span>
                     </div>
                     <div class="card-actions-top">
+                        <button class="card-action-btn copy-btn-card" title="Copy plain text to clipboard">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                            </svg>
+                        </button>
                         <button class="card-action-btn tweet-btn-card" title="Tweet about this specific update">
                             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                                 <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -321,6 +373,19 @@ function renderCards(updates) {
             }
             
             toggleSelection(item.id);
+        });
+        
+        // Handle Individual Copy Button click
+        const copyBtn = card.querySelector('.copy-btn-card');
+        copyBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const textToCopy = `BigQuery ${item.type} (${item.date}):\n"${item.description_text}"\n\nRead more: ${item.link}`;
+            try {
+                await navigator.clipboard.writeText(textToCopy);
+                showToast('Release note copied to clipboard!', 'success');
+            } catch (err) {
+                showToast('Failed to copy to clipboard.', 'error');
+            }
         });
         
         // Handle Individual Tweet Button click
@@ -512,6 +577,11 @@ function setupEventListeners() {
     // Refresh button
     elements.btnRefresh.addEventListener('click', () => {
         fetchReleases(true);
+    });
+    
+    // Export CSV button
+    elements.btnExport.addEventListener('click', () => {
+        exportToCSV();
     });
     
     // Search Box Input
